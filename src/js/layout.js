@@ -1,14 +1,14 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ScrollToTop from "./component/scrollToTop";
 
-import { Home } from "./views/home";
-import { Demo } from "./views/demo";
-import { Single } from "./views/single";
 import injectContext from "./store/appContext";
 
 import { Navbar } from "./component/navbar";
 import { Footer } from "./component/footer";
+import { ListComponent } from "./component/listComponent";
+import { Details } from "./component/details"
+import { Card } from "./component/card";
 
 //create your first component
 const Layout = () => {
@@ -16,15 +16,66 @@ const Layout = () => {
 	// you can set the basename on the .env file located at the root of this project, E.g: BASENAME=/react-hello-webapp/
 	const basename = process.env.BASENAME || "";
 
+	const [favoritos, setFavoritos] = useState([]);
+
+	const [listaPersonajes, setListaPersonajes] = useState([])
+	const [listaPlanetas, setListaPlanetas] = useState([])
+	const [listaNaves, setListaNaves] = useState([])
+
+	useEffect(() => {
+		const fetchPersonajes = async () => {
+			const data = await (
+				await fetch('https://swapi.dev/api/people/', {
+					method: "GET",
+					headers: {
+						"Content-Type": "application/json"
+					}
+				})).json();
+			setListaPersonajes(data.results);
+		};
+
+		const fetchPlanetas = async () => {
+			const data = await (
+				await fetch('https://swapi.dev/api/planets/', {
+					method: "GET",
+					headers: {
+						"Content-Type": "application/json"
+					}
+				})).json();
+			setListaPlanetas(data.results);
+		};
+
+		const fetchNaves = async () => {
+			const data = await (
+				await fetch('https://swapi.dev/api/starships/', {
+					method: "GET",
+					headers: {
+						"Content-Type": "application/json"
+					}
+				})).json();
+			setListaNaves(data.results);
+		};
+
+		fetchPersonajes();
+		fetchPlanetas();
+		fetchNaves();
+	}, [])
+
 	return (
 		<div>
 			<BrowserRouter basename={basename}>
 				<ScrollToTop>
-					<Navbar />
+				<Navbar favoritos={favoritos} function={setFavoritos} />
 					<Routes>
-						<Route path="/" element={<Home />} />
-						<Route path="/demo" element={<Demo />} />
-						<Route path="/single/:theid" element={<Single />} />
+					<Route path="/" element={
+							<ListComponent
+								function={setFavoritos}
+								favoritos={favoritos}
+								personajes={listaPersonajes}
+								planetas={listaPlanetas}
+								naves={listaNaves}
+							/>} />
+						<Route path="/details" element={<Details />} />
 						<Route path="*" element={<h1>Not found!</h1>} />
 					</Routes>
 					<Footer />
